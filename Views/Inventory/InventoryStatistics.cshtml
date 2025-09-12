@@ -1,0 +1,75 @@
+﻿@using InventoryManagement.Web.DTOs
+@model InventoryStatsDTO
+
+@{
+    ViewData["Title"] = "Inventory Statistics";
+}
+
+<h1 class="text-center my-4">Inventory Statistics</h1>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow-sm p-4">
+            <h4 class="card-title">General Info</h4>
+            <p><strong>Total Items:</strong> @Model.TotalItems</p>
+        </div>
+
+        <div class="mt-4">
+            <h4>Field Statistics</h4>
+            @if (!Model.FieldStatistics.Any())
+            {
+                <p>No field statistics available for this inventory.</p>
+            }
+            else
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <a href="c:\users\ana1a\desktop\08.09final\inventory-main\views\inventory\inventorystatistics.cshtml">c:\users\ana1a\desktop\08.09final\inventory-main\views\inventory\inventorystatistics.cshtml</a>
+                        <tr>
+                            <th>Field Name</th>
+                            <th>Type</th>
+                            <th>Statistics</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var field in Model.FieldStatistics)
+                        {
+                            <tr>
+                                <td>@field.Title</td>
+                                <td>@field.Type</td>
+                                <td>
+                                    @if (field.Type == "Int")
+                                    {
+                                        <p>Min: @field.MinValue</p>
+                                        <p>Max: @field.MaxValue</p>
+                                        <p>Avg: @field.AverageValue.GetValueOrDefault(0).ToString("F2")</p>
+                                    }
+                                    else if (field.Type == "String")
+                                    {
+                                        <p>Most Popular Values:</p>
+                                        <ul>
+                                            @foreach (var value in field.MostPopularValues)
+                                            {
+                                                <li>@value</li>
+                                            }
+                                        </ul>
+                                    }
+                                    else if (field.Type == "Bool")
+                                    {
+                                        <p>Counts:</p>
+                                        <ul>
+                                            @foreach (var value in field.MostPopularValues)
+                                            {
+                                                <li>@value</li>
+                                            }
+                                        </ul>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

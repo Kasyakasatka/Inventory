@@ -1,0 +1,28 @@
+﻿@model InventoryManagement.Web.ViewModels.UserSearchResultsViewModel
+
+<h1 class="mb-4">Search Results</h1>
+
+@if (Model.FoundUsers != null && Model.FoundUsers.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.FoundUsers)
+            {
+                <tr>
+                    <td>@user.Username</td>
+                    <td>@user.Email</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No users found for your query.</p>
+}

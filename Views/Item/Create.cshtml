@@ -1,0 +1,53 @@
+﻿﻿@using InventoryManagement.Web.ViewModels
+@using InventoryManagement.Web.Data.Models.Enums
+@model CreateItemViewModel
+
+@{
+    ViewData["Title"] = "Create Item";
+}
+
+<h1 class="mb-4">@ViewData["Title"]</h1>
+
+<form asp-controller="Item" asp-action="Create" asp-route-inventoryId="@Model.InventoryId" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    @Html.AntiForgeryToken()
+
+   
+
+    <h3 class="mt-4 mb-3">Custom Fields</h3>
+    @if (Model.FieldDefinitions.Any())
+    {
+        @for (int i = 0; i < Model.FieldDefinitions.Count(); i++)
+        {
+            var field = Model.FieldDefinitions.ElementAt(i);
+            <div class="form-group mb-3">
+                <label class="form-label">@field.Title</label>
+                <input type="hidden" name="ItemDTO.CustomFields[@i].FieldDefinitionId" value="@field.Id" /> @switch (field.Type)
+                {
+                    case FieldType.String:
+                        <input type="text" name="ItemDTO.CustomFields[@i].StringValue" class="form-control" />
+                        break;
+                    case FieldType.Int:
+                        <input type="number" name="ItemDTO.CustomFields[@i].IntValue" class="form-control" />
+                        break;
+                    case FieldType.Bool:
+                        <input type="checkbox" name="ItemDTO.CustomFields[@i].BoolValue" class="form-check-input" />
+                        break;
+                    default:
+                        <span>Unsupported field type.</span>
+                        break;
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <p>No custom fields defined for this inventory.</p>
+    }
+
+    <button type="submit" class="btn btn-primary me-2">Create Item</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

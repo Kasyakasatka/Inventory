@@ -1,0 +1,28 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using InventoryManagement.Web.Data.Models
+
+@inject SignInManager<User> SignInManager
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item">
+            <span class="nav-link text-dark">Hello, @User.Identity?.Name!</span>
+        </li>
+        <li class="nav-item">
+            <form asp-controller="Auth" asp-action="Logout" method="post" id="logoutForm">
+                <button type="submit" class="nav-link btn btn-link text-dark align-items-center">Logout</button>
+                @Html.AntiForgeryToken()
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Auth" asp-action="Register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Auth" asp-action="Login">Login</a>
+        </li>
+    }
+</ul>

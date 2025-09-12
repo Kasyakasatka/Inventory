@@ -1,0 +1,72 @@
+﻿@using InventoryManagement.Web.ViewModels
+@using InventoryManagement.Web.DTOs
+@model SearchResultsViewModel
+
+@{
+    ViewData["Title"] = $"Search Results for: {Model.Query}";
+}
+
+<h1 class="mb-4">Search Results</h1>
+
+@if (string.IsNullOrWhiteSpace(Model.Query))
+{
+    <p>Please enter a search query.</p>
+}
+else
+{
+    <h3>Inventories</h3>
+    @if (Model.FoundInventories != null && Model.FoundInventories.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Creator</th>
+                    <th>Items</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var inventory in Model.FoundInventories)
+                {
+                    <tr>
+                        <td><a asp-controller="Inventory" asp-action="Details" asp-route-id="@inventory.Id">@inventory.Title</a></td>
+                        <td>@inventory.CreatorName</td>
+                        <td>@inventory.ItemCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No inventories found for your query.</p>
+    }
+
+    <h3 class="mt-4">Items</h3>
+    @if (Model.FoundItems != null && Model.FoundItems.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Custom ID</th>
+                    <th>Inventory</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.FoundItems)
+                {
+                    <tr>
+                        <td><a asp-controller="Item" asp-action="Details" asp-route-id="@item.Id">@item.CustomId</a></td>
+                        <td><a asp-controller="Inventory" asp-action="Details" asp-route-id="@item.Inventory.Id">@item.Inventory.Title</a></td>
+                        <td>@item.CreatedAt.ToShortDateString()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No items found for your query.</p>
+    }
+}

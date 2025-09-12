@@ -1,0 +1,295 @@
+﻿@model InventoryManagement.Web.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h1 class="mb-4">Admin Dashboard</h1>
+<div class="row">
+    <div class="col-md-12">
+        <input type="text" id="user-search-input" class="form-control mb-2" placeholder="Search users by name or email...">
+    </div>
+</div>
+<div id="notification-container"></div>
+<div class="table-responsive">
+    <table class="table table-striped" id="user-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Admin</th>
+                <th>Locked Out</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.Users)
+            {
+                <tr data-user-id="@user.Id" data-is-admin="@user.IsAdmin.ToString().ToLower()" data-is-locked-out="@user.IsLockedOut.ToString().ToLower()">
+                    <td>@user.Username</td>
+                    <td>@user.Email</td>
+                    <td>
+                        <span class="badge @(user.IsAdmin ? "bg-success" : "bg-secondary") admin-status">
+                            @(user.IsAdmin ? "Yes" : "No")
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge @(user.IsLockedOut ? "bg-danger" : "bg-secondary") locked-out-status">
+                            @(user.IsLockedOut ? "Yes" : "No")
+                        </span>
+                    </td>
+                    <td>
+                        <div class="actions-container">
+                            <i class="fas fa-ellipsis-v action-button"></i>
+                            <div class="context-menu">
+                                @if (!user.IsAdmin)
+                                {
+                                    <form asp-controller="Admin" asp-action="AddAdmin" method="post" class="context-form">
+                                        <input type="hidden" name="UserId" value="@user.Id" />
+                                        <button type="submit" class="context-action btn btn-link">Add Admin</button>
+                                        @Html.AntiForgeryToken()
+                                    </form>
+                                }
+                                @if (user.IsAdmin)
+                                {
+                                    <form asp-controller="Admin" asp-action="RemoveAdmin" method="post" class="context-form">
+                                        <input type="hidden" name="UserId" value="@user.Id" />
+                                        <button type="submit" class="context-action btn btn-link">Remove Admin</button>
+                                        @Html.AntiForgeryToken()
+                                    </form>
+                                }
+                                @if (!user.IsLockedOut)
+                                {
+                                    <form asp-controller="Admin" asp-action="BlockUser" method="post" class="context-form">
+                                        <input type="hidden" name="UserId" value="@user.Id" />
+                                        <button type="submit" class="context-action btn btn-link text-danger">Block</button>
+                                        @Html.AntiForgeryToken()
+                                    </form>
+                                }
+                                @if (user.IsLockedOut)
+                                {
+                                    <form asp-controller="Admin" asp-action="UnblockUser" method="post" class="context-form">
+                                        <input type="hidden" name="UserId" value="@user.Id" />
+                                        <button type="submit" class="context-action btn btn-link text-success">Unblock</button>
+                                        @Html.AntiForgeryToken()
+                                    </form>
+                                }
+                                <form asp-controller="Admin" asp-action="DeleteUser" method="post" class="context-form">
+                                    <input type="hidden" name="UserId" value="@user.Id" />
+                                    <button type="submit" class="context-action btn btn-link text-danger">Delete</button>
+                                    @Html.AntiForgeryToken()
+                                </form>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this user? If they own inventories, those will also be deleted. This action is irreversible.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function showNotification(message, isError = false) {
+            const container = $('#notification-container');
+            const messageClass = isError ? 'error' : 'success';
+            const notification = $(`<div class="notification-message ${messageClass}">${message}</div>`);
+
+            if (container.children().length > 3) {
+                container.children().first().remove();
+            }
+
+            container.append(notification);
+
+            setTimeout(() => {
+                notification.addClass('show');
+            }, 10);
+
+            setTimeout(() => {
+                notification.removeClass('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 500);
+            }, 3000);
+        }
+
+        $(document).ready(function() {
+            $(document).on('click', '.action-button', function(event) {
+                event.stopPropagation();
+                const menu = $(this).closest('.actions-container').find('.context-menu');
+                $('.context-menu').not(menu).removeClass('show');
+                menu.toggleClass('show');
+            });
+
+            $(document).on('click', function(event) {
+                if (!$(event.target).closest('.actions-container').length) {
+                    $('.context-menu').removeClass('show');
+                }
+            });
+
+            $('#user-search-input').on('keyup', function() {
+                const query = $(this).val().toLowerCase();
+                $('#user-table tbody tr').filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(query) > -1)
+                });
+            });
+             $(document).on('click', '.delete-user-btn', function(event) {
+                event.preventDefault();
+                const form = $(this).closest('form');
+                userIdToDelete = form.find('input[name="UserId"]').val();
+
+                $('#confirmDeleteModal').modal('show');
+            });
+
+            $('#confirm-delete-btn').on('click', function() {
+                const form = $(`form.delete-form[data-user-id='${userIdToDelete}']`);
+                const antiForgeryToken = form.find('input[name="__RequestVerificationToken"]').val();
+                if (form.length === 0) {
+                    console.error('Form not found for user ID:', userIdToDelete);
+                    return;
+                }
+
+                $.post({
+                    url: form.attr('action'),
+                    data: { UserId: userIdToDelete, '__RequestVerificationToken': antiForgeryToken },
+                    success: function() {
+                        $('#confirmDeleteModal').modal('hide');
+                        showNotification('User and all related inventories deleted successfully!');
+                        window.location.reload();
+                    },
+                    error: function(err) {
+                        $('#confirmDeleteModal').modal('hide');
+                        showNotification('Failed to delete user.', true);
+                        console.error("Delete error:", err);
+                    }
+                });
+            });
+
+            $(document).on('click', '.context-action', function(event) {
+                const button = $(this);
+                const form = button.closest('form');
+                if (form.hasClass('delete-form')) {
+                    return; 
+                }
+                event.preventDefault();
+
+                const url = form.attr('action');
+                const userId = form.find('input[name="UserId"]').val();
+                const antiForgeryToken = form.find('input[name="__RequestVerificationToken"]').val();
+
+                if (!url) {
+                    return;
+                }
+
+                button.prop('disabled', true).text('Working...');
+
+                $.post({
+                    url: url,
+                    data: { UserId: userId, '__RequestVerificationToken': antiForgeryToken },
+                    success: function(response) {
+                        showNotification('Action completed successfully!');
+                        window.location.reload();
+                    },
+                    error: function(err) {
+                        showNotification('Failed to complete action.', true);
+                        console.error("Action error:", err);
+                        button.prop('disabled', false).text(button.data('original-text'));
+                    }
+                });
+            });
+        });
+    </script>
+}
+<style>
+    .actions-container {
+        position: relative;
+        display: inline-block;
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+
+    .action-button {
+        padding: 5px;
+        color: #6c757d;
+    }
+
+    .context-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 10;
+        border-radius: 5px;
+        white-space: nowrap;
+    }
+
+    .context-action {
+        color: black;
+        padding: 8px 16px;
+        text-decoration: none;
+        display: block;
+        width: 100%;
+        text-align: left;
+    }
+
+    .context-menu form {
+        margin: 0;
+    }
+
+    .context-menu.show {
+        display: block;
+    }
+
+    #notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    .notification-message {
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: #fff;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.5s ease-in-out;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+        .notification-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification-message.success {
+            background-color: #28a745;
+        }
+
+        .notification-message.error {
+            background-color: #dc3545;
+        }
+</style>
