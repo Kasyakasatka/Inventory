@@ -53,4 +53,46 @@ public class UserService : IUserService
         _logger.LogInformation("Found {Count} users for query.", userDTOs.Count);
         return userDTOs;
     }
+
+    public async Task<IEnumerable<InventoryViewDTO>> GetOwnedInventoriesAsync(Guid userId)
+    {
+        _logger.LogInformation("Retrieving inventories owned by user {UserId}.", userId);
+        var inventories = await _context.Inventories
+            .AsNoTracking()
+            .Include(i => i.Creator)
+            .Where(i => i.CreatorId == userId)
+            .OrderByDescending(i => i.CreatedAt)
+            .Select(i => new { Inventory = i, ItemCount = i.Items.Count() })
+            .ToListAsync();
+
+        return inventories.Select(i =>
+        {
+            var dto = _mapper.Map<InventoryViewDTO>(i.Inventory);
+            dto.ItemCount = (uint)i.ItemCount;
+            return dto;
+        });
+    }
+
+    public async Task<IEnumerable<InventoryViewDTO>> GetWriteAccessInventoriesAsync(Guid userId)
+    {
+        _logger.LogInformation("Retrieving inventories with write access for user {UserId}.", userId);
+        var inventories = await _context.InventoryAccesses
+         .AsNoTracking()
+         .Where(ia => ia.UserId == userId)
+         .Include(ia => ia.Inventory) 
+         .ThenInclude(i => i.Creator) 
+         .Select(ia => new {
+             Inventory = ia.Inventory,
+             ItemCount = ia.Inventory.Items.Count()
+         })
+         .OrderByDescending(i => i.Inventory.CreatedAt)
+         .ToListAsync();
+
+        return inventories.Select(i =>
+        {
+            var dto = _mapper.Map<InventoryViewDTO>(i.Inventory);
+            dto.ItemCount = (uint)i.ItemCount;
+            return dto;
+        });
+    }
 }
