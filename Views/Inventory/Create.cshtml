@@ -1,0 +1,303 @@
+﻿﻿@using InventoryManagement.Web.ViewModels
+@using InventoryManagement.Web.Data.Models.Enums
+@model CreateInventoryViewModel
+
+@{
+    ViewData["Title"] = "Create Inventory";
+}
+
+<h1 class="mb-4">
+    @ViewData["Title"]
+</h1>
+
+<form id="inventory-create-form" asp-controller="Inventory" asp-action="Create" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    @Html.AntiForgeryToken()
+
+    <ul class="nav nav-tabs mb-4" id="inventoryTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">General Settings</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="custom-id-tab" data-bs-toggle="tab" data-bs-target="#custom-id" type="button" role="tab">Custom ID</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="fields-tab" data-bs-toggle="tab" data-bs-target="#fields" type="button" role="tab">Fields</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="inventoryTabsContent">
+        <div class="tab-pane fade show active" id="general" role="tabpanel" tabindex="0">
+            <div class="form-group mb-3">
+                <label asp-for="InventoryDTO.Title" class="form-label"></label>
+                <input asp-for="InventoryDTO.Title" class="form-control" />
+                <span asp-validation-for="InventoryDTO.Title" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="InventoryDTO.Description" class="form-label"></label>
+                <textarea asp-for="InventoryDTO.Description" class="form-control"></textarea>
+                <span asp-validation-for="InventoryDTO.Description" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="InventoryDTO.CategoryId" class="form-label">Category</label>
+                <select asp-for="InventoryDTO.CategoryId" asp-items="@(new SelectList(Model.Categories, "Id", "Name"))" class="form-control">
+                    <option value="">-- Select a Category --</option>
+                </select>
+                <span asp-validation-for="InventoryDTO.CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="InventoryDTO.ImageFile" class="form-label">Upload Image</label>
+                <input asp-for="InventoryDTO.ImageFile" type="file" name="imageFile" class="form-control" />
+                <span asp-validation-for="InventoryDTO.ImageFile" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check mb-3">
+                <input asp-for="InventoryDTO.IsPublic" class="form-check-input" />
+                <label asp-for="InventoryDTO.IsPublic" class="form-check-label">Is Public</label>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="InventoryDTO.TagsInput" class="form-label">Tags (comma-separated)</label>
+                <input asp-for="InventoryDTO.TagsInput" class="form-control" value="@(string.Join(", ", Model.InventoryDTO.Tags))" />
+                <span asp-validation-for="InventoryDTO.TagsInput" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="custom-id" role="tabpanel" tabindex="0">
+            <div class="card p-3">
+                <p>You can set up inventory numbers in your preferred format. To create a format, add new elements, edit them, drag to reorder, or drag elements out of the form to delete them.</p>
+                <div class="alert alert-secondary d-flex align-items-center" role="alert">
+                    <span class="text-nowrap me-2">Example:</span>
+                    <span id="custom-id-preview" class="flex-grow-1 fw-bold text-truncate">...</span>
+                </div>
+                <input type="hidden" name="InventoryDTO.CustomIdFormat" id="custom-id-format-input" />
+
+                <div id="id-elements-container" class="mb-3 p-2 border rounded sortable-list" style="min-height: 50px;">
+                </div>
+
+                <div id="id-source-container" class="d-flex flex-wrap gap-2 mt-3">
+                    <div class="id-source-item p-2 border rounded bg-light" data-type="FixedText">
+                        <i class="fas fa-lock me-1"></i> Fixed
+                        <span class="info-icon" data-bs-toggle="tooltip" title="A piece of unchanging text. E.g., you can use Unicode emoji.">?</span>
+                    </div>
+                    <div class="id-source-item p-2 border rounded bg-light" data-type="Random">
+                        <i class="fas fa-random me-1"></i> Random
+                        <span class="info-icon" data-bs-toggle="tooltip" title="A random value. E.g., you can format it as a six-digit decimal (D6) or 5-digit hex (X5).">?</span>
+                    </div>
+                    <div class="id-source-item p-2 border rounded bg-light" data-type="Sequence">
+                        <i class="fas fa-sort-numeric-up-alt me-1"></i> Sequence
+                        <span class="info-icon" data-bs-toggle="tooltip" title="A sequential index. E.g., you can format it with leading zeros (D4) or without them (D).">?</span>
+                    </div>
+                    <div class="id-source-item p-2 border rounded bg-light" data-type="DateTime">
+                        <i class="fas fa-calendar-alt me-1"></i> Date/time
+                        <span class="info-icon" data-bs-toggle="tooltip" title="An item creation date and time. E.g., you can use an abbreviated day of the week (ddd).">?</span>
+                    </div>
+                    <div class="id-source-item p-2 border rounded bg-light" data-type="Guid">
+                        <i class="fas fa-fingerprint me-1"></i> GUID
+                        <span class="info-icon" data-bs-toggle="tooltip" title="A globally unique identifier.">?</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="fields" role="tabpanel" tabindex="0">
+            <h3 class="mt-4 mb-3">Custom Fields</h3>
+            <div id="custom-fields-container" class="mb-3">
+            </div>
+            <button type="button" id="add-field-btn" class="btn btn-secondary mb-4">Add Custom Field</button>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary me-2">Create Inventory</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+        const form = document.getElementById('inventory-create-form');
+        const addFieldBtn = document.getElementById('add-field-btn');
+        const customFieldsContainer = document.getElementById('custom-fields-container');
+        let fieldCounter = 0;
+
+        addFieldBtn.addEventListener('click', () => addField());
+        function addField(field = {}) {
+            const fieldIndex = fieldCounter++;
+            const fieldType = field.Type || 'String';
+             const isRequiredChecked = field.IsRequired ? 'checked' : '';
+            const showInTableChecked = field.ShowInTable ? 'checked' : '';
+
+            const fieldHtml = `
+                <div class="custom-field p-3 border rounded mb-3" data-index="${fieldIndex}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="m-0">Custom Field</h5>
+                        <button type="button" class="btn-close remove-field-btn" aria-label="Remove"></button>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Title</label>
+                        <input type="text" name="InventoryDTO.FieldDefinitions[${fieldIndex}].Title" class="form-control" value="${field.Title || ''}" required />
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Type</label>
+                        <select name="InventoryDTO.FieldDefinitions[${fieldIndex}].Type" class="form-control field-type-select">
+                            <option value="String" ${fieldType === 'String' ? 'selected' : ''}>String</option>
+                            <option value="Int" ${fieldType === 'Int' ? 'selected' : ''}>Int</option>
+                            <option value="Bool" ${fieldType === 'Bool' ? 'selected' : ''}>Bool</option>
+                        </select>
+                    </div>
+                         <div class="form-group form-check mb-2">
+                                <input type="checkbox" name="InventoryDTO.FieldDefinitions[${fieldIndex}].IsRequired" class="form-check-input" value="true" ${isRequiredChecked} />
+                                <label class="form-check-label">Is Required</label>
+                           </div>
+                        <div class="form-group form-check mb-2">
+                                  <input type="checkbox" name="InventoryDTO.FieldDefinitions[${fieldIndex}].ShowInTable" class="form-check-input" value="true" ${showInTableChecked} />
+                            <label class="form-check-label">Show in Table</label>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label>Description</label>
+                        <input type="text" name="InventoryDTO.FieldDefinitions[${fieldIndex}].Description" class="form-control" value="${field.Description || ''}" />
+                    </div>
+                    <div class="form-group validation-fields mb-2" data-field-type="${fieldType}">
+                        <div class="string-validation" style="${fieldType === 'String' ? '' : 'display:none;'}">
+                            <label>Validation Regex</label>
+                            <input type="text" name="InventoryDTO.FieldDefinitions[${fieldIndex}].ValidationRegex" class="form-control" value="${field.ValidationRegex || ''}" />
+                        </div>
+                        <div class="int-validation" style="${fieldType === 'Int' ? '' : 'display:none;'}">
+                            <label>Validation Min</label>
+                            <input type="number" name="InventoryDTO.FieldDefinitions[${fieldIndex}].ValidationMin" class="form-control mb-2" value="${field.ValidationMin || ''}" />
+                            <label>Validation Max</label>
+                            <input type="number" name="InventoryDTO.FieldDefinitions[${fieldIndex}].ValidationMax" class="form-control" value="${field.ValidationMax || ''}" />
+                        </div>
+                    </div>
+                </div>
+            `;
+            customFieldsContainer.insertAdjacentHTML('beforeend', fieldHtml);
+        }
+        const idElementsContainer = document.getElementById('id-elements-container');
+        const idSourceContainer = document.getElementById('id-source-container');
+        const idPreview = document.getElementById('custom-id-preview');
+        let idElementCounter = 0;
+
+                function generateElementHtml(element) {
+            const index = idElementCounter++;
+            const type = element.type;
+            let inputHtml = '';
+            if (type === 'FixedText') {
+                inputHtml = `<input type="text" name="InventoryDTO.CustomIdFormatElements[${index}].Value" class="form-control form-control-sm me-2" placeholder="Text" value="${element.value || ''}" />`;
+            } else if (type !== 'Guid') {
+                inputHtml = `<input type="text" name="InventoryDTO.CustomIdFormatElements[${index}].Format" class="form-control form-control-sm me-2" placeholder="Format" value="${element.format || ''}" />`;
+            }
+            return `
+                <div class="id-element-item p-2 border rounded bg-light d-flex align-items-center mb-1" data-index="${index}" data-type="${type}">
+                    <i class="fas fa-grip-lines me-2 handle"></i>
+                    <span class="badge bg-primary me-2">${type}</span>
+                    ${inputHtml}
+                    <button type="button" class="btn btn-danger btn-sm remove-element-btn" aria-label="Remove">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        function updateIdPreview() {
+            let previewText = '';
+            $(idElementsContainer).find('.id-element-item').each(function() {
+                const type = $(this).data('type');
+                const value = $(this).find('input[name*="Value"]').val() || '';
+                const format = $(this).find('input[name*="Format"]').val() || '';
+                switch(type) {
+                    case 'FixedText':
+                        previewText += value || '';
+                        break;
+                    case 'Random':
+                        previewText += format ? `[Random:${format}]` : '[Random]';
+                        break;
+                    case 'Sequence':
+                        previewText += format ? `[Seq:${format}]` : '[Seq]';
+                        break;
+                    case 'DateTime':
+                        previewText += format ? `[Date:${format}]` : '[Date]';
+                        break;
+                    case 'Guid':
+                        previewText += '[GUID]';
+                        break;
+                }
+            });
+            idPreview.textContent = previewText || '...';
+        }
+
+        function renumberIdElements() {
+            $(idElementsContainer).find('.id-element-item').each(function(index) {
+                $(this).find('input, select').each(function() {
+                    const originalName = $(this).attr('name');
+                    if (originalName) {
+                        $(this).attr('name', originalName.replace(/\[\d+\]/, `[${index}]`));
+                    }
+                });
+            });
+        }
+
+        $(function() {
+            $(idElementsContainer).sortable({
+                items: "> .id-element-item",
+                handle: ".handle",
+                stop: function(event, ui) {
+                    renumberIdElements();
+                    updateIdPreview();
+                }
+            });
+            $(idSourceContainer).find('.id-source-item').draggable({
+                helper: 'clone',
+            });
+            $(idElementsContainer).droppable({
+                accept: ".id-source-item",
+                drop: function(event, ui) {
+                    const type = ui.draggable.data('type');
+                    const element = { type: type, value: '', format: '' };
+                    const html = generateElementHtml(element);
+                    $(this).append(html);
+                    renumberIdElements();
+                    updateIdPreview();
+                }
+            });
+            $(document).on('click', '.remove-element-btn', function() {
+                $(this).closest('.id-element-item').remove();
+                renumberIdElements();
+                updateIdPreview();
+            });
+            $(document).on('input', '#id-elements-container input, #id-elements-container select', updateIdPreview);
+        @if (!string.IsNullOrEmpty(Model.InventoryDTO.CustomIdFormat))
+        {
+            @:try {
+            @:var formatModel = JSON.parse('@Html.Raw(Model.InventoryDTO.CustomIdFormat)');
+            @:if (formatModel && formatModel.elements) {
+            @:formatModel.elements.forEach(element => {
+            @:const html = generateElementHtml(element);
+            @:$(idElementsContainer).append(html);
+            @:});
+            @:renumberIdElements();
+            @:updateIdPreview();
+            @:}
+            @:} catch (e) { console.error('Failed to parse CustomIdFormat JSON:', e); }
+        }
+        });
+        form.addEventListener('submit', function(e) {
+                   const idElements = [];
+                   document.querySelectorAll('.id-element-item').forEach(element => {
+                       const type = element.dataset.type;
+                       const valueInput = element.querySelector('input[name*="Value"]');
+                       const formatInput = element.querySelector('input[name*="Format"]');
+
+                       const idElement = {
+                           Type: type,
+                           Value: valueInput ? valueInput.value : null,
+                           Format: formatInput ? formatInput.value : null
+                       };
+                       idElements.push(idElement);
+                   });
+                   const customIdFormat = {
+                       Elements: idElements
+                   };
+                   const jsonString = JSON.stringify(customIdFormat);
+                   document.getElementById('custom-id-format-input').value = jsonString;
+        });
+    </script>
+}

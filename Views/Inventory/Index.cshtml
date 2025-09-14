@@ -1,0 +1,60 @@
+﻿@model InventoryManagement.Web.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <a asp-controller="Inventory" asp-action="Create" class="btn btn-primary btn-lg mt-3">Create New Inventory</a>
+    }
+</div>
+<div class="row mt-5">
+    <div class="col-md-6">
+        <h2>Latest Inventories</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Creator</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var inventory in Model.LatestInventories)
+                {
+                    <tr>
+                        <td><a asp-controller="Inventory" asp-action="Details" asp-route-id="@inventory.Id">@inventory.Title</a></td>
+                        <td>@inventory.CreatorName</td>
+                        <td>@inventory.CreatedAt.ToShortDateString()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-6">
+        <h2>Most Popular</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Items</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var inventory in Model.PopularInventories)
+                {
+                    <tr>
+                        <td><a asp-controller="Inventory" asp-action="Details" asp-route-id="@inventory.Id">@inventory.Title</a></td>
+                        <td>@inventory.ItemCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

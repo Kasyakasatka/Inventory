@@ -1,0 +1,61 @@
+body {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    min-height: 100vh;
+    color: #f8f9fa;
+}
+
+.login-card {
+    background-color: antiquewhite;
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+    .login-card .form-control {
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        color: white;
+        border-radius: 20px;
+    }
+
+        .login-card .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+    .login-card .btn-primary {
+        background: linear-gradient(90deg, #6a11cb, #2575fc);
+        border: none;
+        border-radius: 20px;
+        color: white;
+    }
+
+    .login-card .btn-outline-light {
+        color: white;
+        border-color: rgba(255, 255, 255, 0.5);
+        border-radius: 20px;
+    }
+.context-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 5px;
+}
+..form-group.position-relative .btn-link {
+    position: absolute;
+    right: 10px;
+    top: 70%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+
+.form-group.position-relative .form-control {
+    padding-right: 0px; 
+}
+#toggle-password {
+    transform: translateX(-13px) translateY(13px);
+}

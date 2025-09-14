@@ -1,0 +1,59 @@
+﻿@model InventoryManagement.Web.ViewModels.EditItemViewModel
+
+@{
+    ViewData["Title"] = "Edit Item";
+}
+
+<h1 class="mb-4">Edit Item</h1>
+
+<form asp-controller="Item" asp-action="Edit" asp-route-id="@Model.ItemId" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <input type="hidden" asp-for="ItemId" />
+    <input type="hidden" asp-for="ItemDTO.Version" />
+
+    <h3>Custom ID</h3>
+    <div class="form-group mb-3">
+        <label asp-for="ItemDTO.CustomId" class="form-label"></label>
+        <input asp-for="ItemDTO.CustomId" class="form-control" />
+        <span asp-validation-for="ItemDTO.CustomId" class="text-danger"></span>
+    </div>
+
+    <h3>Custom Fields</h3>
+    @if (Model.FieldDefinitions != null && Model.FieldDefinitions.Any())
+    {
+        @for (int i = 0; i < Model.FieldDefinitions.Count(); i++)
+        {
+            var field = Model.FieldDefinitions.ElementAt(i);
+            <div class="form-group mb-3">
+                <label class="form-label">@field.Title</label>
+                <input type="hidden" name="ItemDTO.CustomFields[@i].FieldDefinitionId" value="@field.Id" />
+
+                @switch (field.Type)
+                {
+                    case InventoryManagement.Web.Data.Models.Enums.FieldType.String:
+                        var stringValue = Model.ItemDTO.CustomFields.FirstOrDefault(cf => cf.FieldDefinitionId == field.Id)?.StringValue;
+                        <input type="text" name="ItemDTO.CustomFields[@i].StringValue" class="form-control" value="@stringValue" />
+                        break;
+                    case InventoryManagement.Web.Data.Models.Enums.FieldType.Int:
+                        var intValue = Model.ItemDTO.CustomFields.FirstOrDefault(cf => cf.FieldDefinitionId == field.Id)?.IntValue;
+                        <input type="number" name="ItemDTO.CustomFields[@i].IntValue" class="form-control" value="@intValue" />
+                        break;
+                    case InventoryManagement.Web.Data.Models.Enums.FieldType.Bool:
+                        var boolValue = Model.ItemDTO.CustomFields.FirstOrDefault(cf => cf.FieldDefinitionId == field.Id)?.BoolValue;
+                        <input type="checkbox" name="ItemDTO.CustomFields[@i].BoolValue" class="form-check-input" checked="@boolValue" />
+                        break;
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <p>No custom fields defined for this inventory.</p>
+    }
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
