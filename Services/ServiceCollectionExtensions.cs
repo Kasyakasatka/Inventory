@@ -30,7 +30,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInventoryStatsService, InventoryStatsService>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<ICustomIdGeneratorService, CustomIdGeneratorService>();
-        
+       
+        services.AddHttpClient<IZapierService, ZapierService>();
         services.AddHttpClient<ISalesforceService, SalesforceService>();
         
         services.AddDbContext<ApplicationDbContext>(options =>
@@ -79,7 +80,8 @@ public static class ServiceCollectionExtensions
         services.Configure<AppConfiguration>(configuration.GetSection("AppConfiguration"));
         services.Configure<IdentityConfig>(configuration.GetSection("IdentityOptions"));
         services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
-        
+        services.Configure<ZapierSettings>(configuration.GetSection("ZapierSettings"));
+
         services.AddSingleton<IAmazonS3>(sp => new AmazonS3Client(
             configuration["AwsSettings:AccessKey"],
             configuration["AwsSettings:SecretKey"],

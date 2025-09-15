@@ -79,26 +79,35 @@ namespace InventoryManagement.Web.Services.Implementations
             }
             var accountId = accountResult.GetProperty("id").GetString();
             _logger.LogInformation("Created Salesforce Account with ID: {AccountId}", accountId);
-            var contact = new
+            try
             {
-                FirstName = profile.FirstName,
-                LastName = profile.LastName,
-                Email = profile.Email,
-                AccountId = accountId
-            };
-            var contactJson = JsonSerializer.Serialize(contact);
-            var contactResp = await _httpClient.PostAsync(
-                $"{_settings.InstanceUrl}/services/data/v60.0/sobjects/Contact",
-                new StringContent(contactJson, Encoding.UTF8, "application/json")
-            );
-            var contactResult = JsonSerializer.Deserialize<JsonElement>(await contactResp.Content.ReadAsStringAsync());
-            if (!contactResp.IsSuccessStatusCode || (contactResult.TryGetProperty("success", out var contactSuccess) && !contactSuccess.GetBoolean()))
-            {
-                var errorMessages = GetErrorMessages(contactResult);
-                _logger.LogError("Failed to create Contact in Salesforce. Errors: {Errors}", string.Join(", ", errorMessages));
-                throw new InvalidOperationException($"Failed to create Contact: {string.Join(", ", errorMessages)}");
+                var contact = new
+                {
+                    FirstName = profile.FirstName,
+                    LastName = profile.LastName,
+                    Email = profile.Email,
+                    AccountId = accountId
+                };
+                var contactJson = JsonSerializer.Serialize(contact);
+                var contactResp = await _httpClient.PostAsync(
+                    $"{_settings.InstanceUrl}/services/data/v60.0/sobjects/Contact",
+                    new StringContent(contactJson, Encoding.UTF8, "application/json")
+                );
+                var contactResult = JsonSerializer.Deserialize<JsonElement>(await contactResp.Content.ReadAsStringAsync());
+                if (!contactResp.IsSuccessStatusCode || (contactResult.TryGetProperty("success", out var contactSuccess) && !contactSuccess.GetBoolean()))
+                {
+                    var errorMessages = GetErrorMessages(contactResult);
+                    _logger.LogError("Failed to create Contact in Salesforce. Errors: {Errors}", string.Join(", ", errorMessages));
+                }
+                else
+                {
+                    _logger.LogInformation("Created Salesforce Contact for {Email}", profile.Email);
+                }
             }
-            _logger.LogInformation("Created Salesforce Contact for {Email}", profile.Email);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An exception occurred while creating Salesforce Contact.");
+            }
         }
 
         private IEnumerable<string> GetErrorMessages(JsonElement response)

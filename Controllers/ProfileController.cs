@@ -72,10 +72,12 @@ namespace InventoryManagement.Web.Controllers
                 var profile = JsonSerializer.Deserialize<SalesforceCreateProfileDTO>(System.Web.HttpUtility.UrlDecode(state));
                 await _salesforceService.CreateAccountWithContactAsync(profile!, accessToken);
                 _logger.LogInformation("Salesforce profile created successfully for {Email}", profile?.Email);
+                TempData["SuccessMessage"] = "Salesforce profile created successfully";
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Salesforce integration failed");
+                TempData["ErrorMessage"] = "Integration failed";
             }
             return RedirectToAction(nameof(Index));
         }

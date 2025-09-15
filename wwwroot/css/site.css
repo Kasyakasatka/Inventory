@@ -45,14 +45,23 @@ body {
     z-index: 1;
     border-radius: 5px;
 }
-..form-group.position-relative .btn-link {
+.form-group.position-relative .btn-link {
     position: absolute;
     right: 10px;
     top: 70%;
     transform: translateY(-50%);
     z-index: 10;
 }
-
+.fixed-bottom {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1050; 
+    width: 300px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
 .form-group.position-relative .form-control {
     padding-right: 0px; 
 }
