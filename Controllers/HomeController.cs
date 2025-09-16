@@ -1,16 +1,11 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using InventoryManagement.Web.Models;
 using InventoryManagement.Web.Data.Models;
 using InventoryManagement.Web.ViewModels;
 using InventoryManagement.Web.DTOs;
 using InventoryManagement.Web.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using System.Text.Json;
-using System.Linq;
-using System;
-using System.Threading.Tasks;
 
 namespace InventoryManagement.Web.Controllers;
 

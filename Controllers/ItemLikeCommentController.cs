@@ -2,10 +2,7 @@
 using InventoryManagement.Web.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using FluentValidation;
-using InventoryManagement.Web.ViewModels;
 
 namespace InventoryManagement.Web.Controllers;
 

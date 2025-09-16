@@ -1,9 +1,7 @@
 ﻿using InventoryManagement.Web.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using System.Threading.Tasks;
 using InventoryManagement.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using InventoryManagement.Web.Data.Models;
@@ -40,9 +38,9 @@ namespace InventoryManagement.Web.Controllers
                 SalesforceProfile = new SalesforceCreateProfileDTO
                 {
                     Email = currentUser?.Email ?? string.Empty,
-                    FirstName = "",
-                    LastName = "",
-                    CompanyName = ""
+                    FirstName = string.Empty,
+                    LastName = string.Empty,
+                    CompanyName = string.Empty
                 }
             };
             return View(viewModel);
@@ -71,12 +69,12 @@ namespace InventoryManagement.Web.Controllers
                 var accessToken = await _salesforceService.ExchangeAuthCodeForTokenAsync(code, redirectUri, null);
                 var profile = JsonSerializer.Deserialize<SalesforceCreateProfileDTO>(System.Web.HttpUtility.UrlDecode(state));
                 await _salesforceService.CreateAccountWithContactAsync(profile!, accessToken);
-                _logger.LogInformation("Salesforce profile created successfully for {Email}", profile?.Email);
-                TempData["SuccessMessage"] = "Salesforce profile created successfully";
+                _logger.LogInformation("Profile created successfully for {Email}", profile?.Email);
+                TempData["SuccessMessage"] = "Profile created successfully";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Salesforce integration failed");
+                _logger.LogError(ex, "Integration failed");
                 TempData["ErrorMessage"] = "Integration failed";
             }
             return RedirectToAction(nameof(Index));

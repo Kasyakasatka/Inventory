@@ -30,7 +30,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInventoryStatsService, InventoryStatsService>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<ICustomIdGeneratorService, CustomIdGeneratorService>();
-       
+        services.AddScoped<IApiTokenService, ApiTokenService>();
+
         services.AddHttpClient<IZapierService, ZapierService>();
         services.AddHttpClient<ISalesforceService, SalesforceService>();
         

@@ -2,16 +2,11 @@
 using InventoryManagement.Web.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using InventoryManagement.Web.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
-using System.Linq;
-using InventoryManagement.Web.Data.Models;
 using AutoMapper;
 using InventoryManagement.Web.ViewModels;
-using Amazon.S3.Model;
 
 namespace InventoryManagement.Web.Controllers;
 

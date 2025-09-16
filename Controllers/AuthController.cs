@@ -5,9 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using InventoryManagement.Web.Data.Models;
-using Microsoft.Extensions.Logging;
 using InventoryManagement.Web.ViewModels;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using System.Security.Claims;
 
 namespace InventoryManagement.Web.Controllers;

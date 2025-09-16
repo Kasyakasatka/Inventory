@@ -1,0 +1,48 @@
+﻿@using InventoryManagement.Web.ViewModels
+@model ManageApiTokensViewModel
+
+@{
+    ViewData["Title"] = $"Manage API Tokens for {Model.InventoryTitle}";
+}
+
+<h1 class="mb-4">Manage API Tokens for "@Model.InventoryTitle"</h1>
+<hr />
+<div class="row">
+    <div class="col-md-8">
+        <h3>Generated Tokens</h3>
+        @if (Model.Tokens.Any())
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Token</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var token in Model.Tokens)
+                    {
+                        <tr>
+                            <td><code>@token.Token</code></td>
+                            <td>@token.CreatedAt.ToString("g")</td>
+                            <td>
+                                <a href="#">Revoke</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                No API tokens have been generated for this inventory.
+            </div>
+        }
+        <form asp-controller="Inventory" asp-action="GenerateToken" asp-route-inventoryId="@Model.InventoryId" method="post">
+            <button type="submit" class="btn btn-primary mt-3">Generate New Token</button>
+            @Html.AntiForgeryToken()
+        </form>
+    </div>
+</div>

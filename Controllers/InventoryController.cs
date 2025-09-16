@@ -3,22 +3,14 @@ using InventoryManagement.Web.Data.Models;
 using InventoryManagement.Web.Services.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using InventoryManagement.Web.Exceptions;
 using FluentValidation;
-using System.Linq;
-using System.Collections.Generic;
 using InventoryManagement.Web.Data.Configurations;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using InventoryManagement.Web.Data;
-using System.Security.Claims;
 using InventoryManagement.Web.ViewModels;
-using InventoryManagement.Web.Services.Implementations;
-using Amazon.S3.Model;
 
 namespace InventoryManagement.Web.Controllers;
 
@@ -33,8 +25,8 @@ public class InventoryController : Controller
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly IExportService _exportService;
-    private readonly ICloudStorageService _cloudStorageService;
-    private readonly IItemService _itemService;
+    private readonly IApiTokenService _apiTokenService;
+
 
     public InventoryController(
         IInventoryService inventoryService,
@@ -46,8 +38,7 @@ public class InventoryController : Controller
         ApplicationDbContext context,
         IMapper mapper,
         IExportService exportService,
-        ICloudStorageService cloudStorageService,
-        IItemService itemService)
+        IApiTokenService apiTokenService)
     {
         _inventoryService = inventoryService;
         _inventoryStatsService = inventoryStatsService;
@@ -58,8 +49,8 @@ public class InventoryController : Controller
         _context = context;
         _mapper = mapper;
         _exportService = exportService;
-        _cloudStorageService = cloudStorageService;
-        _itemService = itemService;
+        _apiTokenService = apiTokenService;
+
     }
 
     [HttpGet("/")]
@@ -274,5 +265,41 @@ public class InventoryController : Controller
             _logger.LogError(ex, "Export failed: Inventory {InventoryId} not found.", id);
             return NotFound();
         }
+    }
+
+    [HttpGet("Inventory/{id}/Tokens")]
+    [Authorize]
+    public async Task<IActionResult> ManageTokens(Guid id)
+    {
+        var currentUserId = _currentUserService.GetCurrentUserId();
+        var inventory = await _inventoryService.GetInventoryByIdAsync(id);
+        if (inventory == null || (inventory.CreatorId != currentUserId && !User.IsInRole("Admin")))
+        {
+            return Forbid(); 
+        }
+        var tokens = await _apiTokenService.GetTokensForInventoryAsync(id);
+        var viewModel = new ManageApiTokensViewModel
+        {
+            InventoryId = id,
+            InventoryTitle = inventory.Title,
+            Tokens = tokens
+        };
+        return View(viewModel);
+    }
+
+    [HttpPost("Inventory/GenerateToken/{inventoryId}")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GenerateToken(Guid inventoryId)
+    {
+        var currentUserId = _currentUserService.GetCurrentUserId();
+        var inventory = await _inventoryService.GetInventoryByIdAsync(inventoryId);
+        if (inventory == null || (inventory.CreatorId != currentUserId && !User.IsInRole("Admin")))
+        {
+            return Forbid();
+        }
+        var token = await _apiTokenService.CreateTokenAsync(inventoryId);
+        _logger.LogInformation("New API token generated for inventory {InventoryId} by user {UserId}.", inventoryId, currentUserId);
+        return RedirectToAction(nameof(ManageTokens), new { id = inventoryId });
     }
 }

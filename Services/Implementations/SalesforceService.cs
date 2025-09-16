@@ -38,13 +38,13 @@ namespace InventoryManagement.Web.Services.Implementations
             return url;
         }
 
-        public async Task<string> ExchangeAuthCodeForTokenAsync(string code, string redirectUri, string unused)
+        public async Task<string> ExchangeAuthCodeForTokenAsync(string code , string redirectUri, string unused)
         {
             var content = new FormUrlEncodedContent(new[]
             {
                 new KeyValuePair<string, string>("grant_type", "authorization_code"),
                 new KeyValuePair<string, string>("client_id", _settings.ClientId),
-                new KeyValuePair<string, string>("client_secret", _settings.ClientSecret),
+                new KeyValuePair<string, string>("client_secret",  _settings.ClientSecret),
                 new KeyValuePair<string, string>("redirect_uri", redirectUri),
                 new KeyValuePair<string, string>("code", code)
             });
@@ -110,7 +110,7 @@ namespace InventoryManagement.Web.Services.Implementations
             }
         }
 
-        private IEnumerable<string> GetErrorMessages(JsonElement response)
+        private  IEnumerable<string> GetErrorMessages(JsonElement response)
         {
             var errors = new List<string>();
             if (response.TryGetProperty("errors", out var errorsElement) && errorsElement.ValueKind == JsonValueKind.Array)

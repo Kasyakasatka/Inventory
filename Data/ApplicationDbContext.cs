@@ -19,6 +19,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<FieldDefinition> FieldDefinitions { get; set; }
     public DbSet<CustomFieldValue> CustomFields { get; set; }
     public DbSet<OneTimeCode> OneTimeCodes { get; set; }
+    public DbSet<ApiToken> ApiTokens { get; set; }
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)

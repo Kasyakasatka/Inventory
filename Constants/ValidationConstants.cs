@@ -19,4 +19,5 @@ public static class ValidationConstants
     public const int CommentTextMaxLength = 2048;
     public const int NameMaxLength = 50;
     public const int CompanyNameMaxLength = 100;
+    public const int TokenMaxLength = 64;
 }
