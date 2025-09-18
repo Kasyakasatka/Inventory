@@ -8,5 +8,6 @@ public class User : IdentityUser<Guid>
     public required List<Inventory> Inventories { get; set; } = new();
     public required List<InventoryAccess> InventoryAccesses { get; set; } = new();
     public NpgsqlTsVector? SearchVector { get; set; }
-   
+    public bool IsSalesforceConnected { get; set; } = false;
+
 }

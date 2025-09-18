@@ -62,16 +62,20 @@ public class UserService : IUserService
             .Include(i => i.Creator)
             .Where(i => i.CreatorId == userId)
             .OrderByDescending(i => i.CreatedAt)
-            .Select(i => new { Inventory = i, ItemCount = i.Items.Count() })
+            .Select(i => new InventoryViewDTO
+            {
+                Id = i.Id,
+                Title = i.Title,
+                Description = i.Description,
+                ImageUrl = i.ImageUrl,
+                CreatorName = i.Creator.UserName!,
+                CreatedAt = i.CreatedAt,
+                ItemCount = (uint)i.Items.Count()
+            })
             .ToListAsync();
-        return inventories.Select(i =>
-        {
-            var dto = _mapper.Map<InventoryViewDTO>(i.Inventory);
-            dto.ItemCount = (uint)i.ItemCount;
-            return dto;
-        });
+        _logger.LogInformation("Successfully retrieved {Count} owned inventories.", inventories.Count);
+        return inventories;
     }
-
     public async Task<IEnumerable<InventoryViewDTO>> GetWriteAccessInventoriesAsync(Guid userId)
     {
         _logger.LogInformation("Retrieving inventories with write access for user {UserId}.", userId);

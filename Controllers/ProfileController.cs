@@ -6,6 +6,7 @@ using InventoryManagement.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using InventoryManagement.Web.Data.Models;
 using InventoryManagement.Web.DTOs;
+using InventoryManagement.Web.Services.Implementations;
 
 namespace InventoryManagement.Web.Controllers
 {
@@ -16,25 +17,36 @@ namespace InventoryManagement.Web.Controllers
         private readonly ILogger<ProfileController> _logger;
         private readonly ISalesforceService _salesforceService;
         private readonly UserManager<User> _userManager;
+        private readonly ICurrentUserService _currentUserService;
+
 
         public ProfileController(
             IUserService userService,
             ILogger<ProfileController> logger,
             ISalesforceService salesforceService,
-            UserManager<User> userManager)
+            UserManager<User> userManager,
+            ICurrentUserService currentUserService)
         {
             _userService = userService;
             _logger = logger;
             _salesforceService = salesforceService;
             _userManager = userManager;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            var currentUserId = _currentUserService.GetCurrentUserId();
             var currentUser = await _userManager.GetUserAsync(User);
+            _logger.LogInformation("User {UserId} is viewing their profile page.", currentUserId);
+            var ownedInventories = await _userService.GetOwnedInventoriesAsync(currentUserId);
+            var writeAccessInventories = await _userService.GetWriteAccessInventoriesAsync(currentUserId);
             var viewModel = new ProfileViewModel
             {
+                OwnedInventories = ownedInventories,
+                WriteAccessInventories = writeAccessInventories,
+                IsSalesforceConnected = currentUser?.IsSalesforceConnected ?? false,
                 SalesforceProfile = new SalesforceCreateProfileDTO
                 {
                     Email = currentUser?.Email ?? string.Empty,
