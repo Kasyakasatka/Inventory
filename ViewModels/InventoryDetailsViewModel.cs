@@ -14,5 +14,6 @@ namespace InventoryManagement.Web.ViewModels
         public required bool IsOwnerOrAdmin { get; set; }
         public required IEnumerable<Comment> AllComments { get; set; }
         public List<FieldDefinitionDTO>? FieldDefinitions { get; set; }
+        public IEnumerable<ApiToken>? ApiTokens { get; set; }
     }
 }

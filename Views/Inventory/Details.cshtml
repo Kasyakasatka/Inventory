@@ -2,11 +2,10 @@
 @using InventoryManagement.Web.ViewModels
 @using InventoryManagement.Web.Data.Models.Enums
 @model InventoryDetailsViewModel
-
 @{
     ViewData["Title"] = Model.Inventory.Title;
+    var activeTab = Context.Request.Query["tab"].ToString();
 }
-
 <h1 class="mb-4">@Model.Inventory.Title</h1>
 
 <p>Created by: @Model.Inventory.Creator.UserName on @Model.Inventory.CreatedAt.ToShortDateString()</p>
@@ -33,26 +32,28 @@
         </form>
     </div>
 }
-
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item">
-        <a class="nav-link active" id="items-tab" data-bs-toggle="tab" href="#items" role="tab">Items</a>
+        <a class="nav-link @(string.IsNullOrEmpty(activeTab) || activeTab == "items" ? "show active" : "")" id="items-tab" data-bs-toggle="tab" href="#items" role="tab">Items</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" id="discussion-tab" data-bs-toggle="tab" href="#discussion" role="tab">Discussion</a>
+        <a class="nav-link @(activeTab == "discussion" ? "show active" : "")" id="discussion-tab" data-bs-toggle="tab" href="#discussion" role="tab">Discussion</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" id="stats-tab" data-bs-toggle="tab" href="#stats" role="tab">Statistics</a>
+        <a class="nav-link @(activeTab == "stats" ? "show active" : "")" id="stats-tab" data-bs-toggle="tab" href="#stats" role="tab">Statistics</a>
     </li>
     @if (Model.IsOwnerOrAdmin)
     {
         <li class="nav-item">
-            <a class="nav-link" id="settings-tab" data-bs-toggle="tab" href="#settings" role="tab">Settings</a>
+            <a class="nav-link @(activeTab == "settings" ? "show active" : "")" id="settings-tab" data-bs-toggle="tab" href="#settings" role="tab">Settings</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(activeTab == "tokens" ? "show active" : "")" id="tokens-tab" data-bs-toggle="tab" href="#tokens" role="tab">Tokens</a>
         </li>
     }
 </ul>
 <div class="tab-content mt-3" id="myTabContent">
-    <div class="tab-pane fade show active" id="items" role="tabpanel">
+    <div class="tab-pane fade @(string.IsNullOrEmpty(activeTab) || activeTab == "items" ? "show active" : "")" id="items" role="tabpanel">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3>Items in Inventory</h3>
             @if (Model.HasWriteAccess)
@@ -131,7 +132,7 @@
     </div>
 
 
-    <div class="tab-pane fade" id="discussion" role="tabpanel">
+    <div class="tab-pane fade @(activeTab == "discussion" ? "show active" : "")" id="discussion" role="tabpanel">
         <h3>Discussion</h3>
         @if (Model.AllComments.Any())
         {
@@ -153,8 +154,7 @@
             <p>No comments found for this inventory.</p>
         }
     </div>
-
-    <div class="tab-pane fade" id="stats" role="tabpanel">
+    <div class="tab-pane fade @(activeTab == "stats" ? "show active" : "")" id="stats" role="tabpanel">
         <h3>Statistics</h3>
         <div class="card p-3">
             <h4>Total Items: @Model.Statistics.TotalItems</h4>
@@ -179,13 +179,47 @@
 
     @if (Model.IsOwnerOrAdmin)
     {
-        <div class="tab-pane fade" id="settings" role="tabpanel">
+        <div class="tab-pane fade @(activeTab == "settings" ? "show active" : "")" id="settings" role="tabpanel">
             <h3>Settings</h3>
             <p>Go to settings page to change inventory properties.</p>
             <a asp-controller="Inventory" asp-action="Edit" asp-route-id="@Model.Inventory.Id" class="btn btn-primary">Go to Settings</a>
         </div>
+        <div class="tab-pane fade @(activeTab == "tokens" ? "show active" : "")" id="tokens" role="tabpanel">
+            <h3>API Tokens for Odoo Integration</h3>
+            <p>Generate API tokens to allow external applications to access this inventory's data.</p>
+            @if (Model.ApiTokens != null && Model.ApiTokens.Any())
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var token in Model.ApiTokens)
+                        {
+                            <tr>
+                                <td><code>@token.Token</code></td>
+                                <td>@token.CreatedAt.ToString("g")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    No API tokens have been generated for this inventory.
+                </div>
+            }
+
+            <form asp-controller="Inventory" asp-action="GenerateToken" asp-route-inventoryId="@Model.Inventory.Id" method="post">
+                <button type="submit" class="btn btn-primary mt-3">Generate New Token</button>
+                @Html.AntiForgeryToken()
+            </form>
+        </div>
     }
-</div>
 </div>
 @section Scripts {
     <script src="https://unpkg.com/microsoft-signalr/dist/browser/signalr.min.js"></script>
@@ -200,7 +234,7 @@
         })
     </script>
     <style>
-        a#discussion-tab, a#items-tab, a#stats-tab, a#settings-tab {
+        a#discussion-tab, a#items-tab, a#stats-tab, a#settings-tab, a#tokens-tab {
             color: black;
         }
     </style>

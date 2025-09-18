@@ -93,6 +93,7 @@ public class InventoryController : Controller
         var hasWriteAccess = isOwnerOrAdmin ||
                              (inventory.IsPublic && User?.Identity?.IsAuthenticated == true) ||
                              (inventory.InventoryAccesses?.Any(ia => ia.UserId == currentUserId) == true);
+        var apiTokens = await _apiTokenService.GetTokensForInventoryAsync(id); 
         var viewModel = new InventoryDetailsViewModel
         {
             Inventory = inventory,
@@ -102,6 +103,8 @@ public class InventoryController : Controller
             HasWriteAccess = hasWriteAccess,
             IsOwnerOrAdmin = isOwnerOrAdmin,
             IsAdmin = isAdmin,
+            FieldDefinitions = inventory.FieldDefinitions.Select(fd => _mapper.Map<FieldDefinitionDTO>(fd)).ToList(),
+            ApiTokens = apiTokens 
         };
         ViewData["ActiveTab"] = tab;
         _logger.LogInformation("Successfully retrieved details for inventory {InventoryId}.", id);
@@ -300,6 +303,6 @@ public class InventoryController : Controller
         }
         var token = await _apiTokenService.CreateTokenAsync(inventoryId);
         _logger.LogInformation("New API token generated for inventory {InventoryId} by user {UserId}.", inventoryId, currentUserId);
-        return RedirectToAction(nameof(ManageTokens), new { id = inventoryId });
+        return RedirectToAction(nameof(Details), new { id = inventoryId, tab = "tokens" });
     }
 }
